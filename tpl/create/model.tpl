@@ -1,9 +1,7 @@
 package model
 
-import "gorm.io/gorm"
-
 type {{ .StructName }} struct {
-	gorm.Model
+	Base
 }
 
 func (m *{{ .StructName }}) TableName() string {

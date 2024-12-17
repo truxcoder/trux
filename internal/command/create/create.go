@@ -15,15 +15,17 @@ import (
 )
 
 type Create struct {
-	ProjectName          string
-	CreateType           string
-	FilePath             string
-	FileName             string
-	StructName           string
-	StructNameLowerFirst string
-	StructNameFirstChar  string
-	StructNameSnakeCase  string
-	IsFull               bool
+	ProjectName                string
+	CreateType                 string
+	FilePath                   string
+	FileName                   string
+	StructName                 string
+	StructNameLowerFirst       string
+	StructNameFirstChar        string
+	StructNameSnakeCase        string
+	StructNamePlural           string
+	StructNamePluralLowerFirst string
+	IsFull                     bool
 }
 
 func NewCreate() *Create {
@@ -40,7 +42,8 @@ var CmdCreate = &cobra.Command{
 	},
 }
 var (
-	tplPath string
+	tplPath   string
+	pluralize *helper.Pluralize
 )
 
 func init() {
@@ -49,7 +52,7 @@ func init() {
 	CmdCreateRepository.Flags().StringVarP(&tplPath, "tpl-path", "t", tplPath, "template path")
 	CmdCreateModel.Flags().StringVarP(&tplPath, "tpl-path", "t", tplPath, "template path")
 	CmdCreateAll.Flags().StringVarP(&tplPath, "tpl-path", "t", tplPath, "template path")
-
+	pluralize = helper.NewPluralize()
 }
 
 var CmdCreateHandler = &cobra.Command{
@@ -80,9 +83,16 @@ var CmdCreateModel = &cobra.Command{
 	Args:    cobra.ExactArgs(1),
 	Run:     runCreate,
 }
+var CmdCreateAPI = &cobra.Command{
+	Use:     "api",
+	Short:   "Create a new api",
+	Example: "trux create api user",
+	Args:    cobra.ExactArgs(1),
+	Run:     runCreate,
+}
 var CmdCreateAll = &cobra.Command{
 	Use:     "all",
-	Short:   "Create a new handler & service & repository & model",
+	Short:   "Create a new handler & service & repository & model & api",
 	Example: "trux create all user",
 	Args:    cobra.ExactArgs(1),
 	Run:     runCreate,
@@ -98,12 +108,16 @@ func runCreate(cmd *cobra.Command, args []string) {
 	c.StructNameLowerFirst = strutil.LowerFirst(c.StructName)
 	c.StructNameFirstChar = string(c.StructNameLowerFirst[0])
 	c.StructNameSnakeCase = strutil.SnakeCase(c.StructName)
+	c.StructNamePlural = pluralize.Plural(c.StructName)
+	c.StructNamePluralLowerFirst = strutil.LowerFirst(c.StructNamePlural)
 
 	switch c.CreateType {
 	case "handler", "service", "repository", "model":
 		c.genFile()
+	case "api":
+		c.FilePath = "api/v1/"
+		c.genFile()
 	case "all":
-
 		c.CreateType = "handler"
 		c.genFile()
 
@@ -114,6 +128,10 @@ func runCreate(cmd *cobra.Command, args []string) {
 		c.genFile()
 
 		c.CreateType = "model"
+		c.genFile()
+
+		c.CreateType = "api"
+		c.FilePath = "api/v1"
 		c.genFile()
 	default:
 		log.Fatalf("Invalid handler type: %s", c.CreateType)

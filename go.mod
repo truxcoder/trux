@@ -8,6 +8,7 @@ require (
 	github.com/charmbracelet/lipgloss v1.0.0
 	github.com/duke-git/lancet/v2 v2.3.4
 	github.com/fsnotify/fsnotify v1.8.0
+	github.com/gertd/go-pluralize v0.2.1
 	github.com/spf13/cobra v1.8.1
 )
 
